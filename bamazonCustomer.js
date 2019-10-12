@@ -71,6 +71,22 @@ let placeOrder = function() {
       }
     ])
     .then(function(answer) {
+      //if id === id && amount <= amount in db in the available to purchase then allow purchase.
+      connection.query("SELECT * FROM products", function(err, res) {
+        if (err) throw err;
+        for (let i = 0; i < res.length; i++) {
+          if (
+            res[i].order == parseInt(answer.order) &&
+            res[i].quantity > parseInt(answer.quantity)
+          ) {
+            let query = "UPDATE products SET ? WHERE ?";
+            connection.query(query, [answer.quantity, answer.order]);
+          }
+        }
+      });
+
+      // else if - unable to process order
+
       // for (let i = 0; i < res.length; i++) {
       //   if (res[i].id == parseInt(answer.order)) {
       //     if (res[i].quantity >= parseInt(answer.quantity)) {
