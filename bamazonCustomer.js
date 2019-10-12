@@ -26,6 +26,7 @@ let runBamazon = function() {
     .then(function(answer) {
       if (answer.action == "Display all items available for sale") {
         displayItems();
+        runBamazon();
       } else {
         placeOrder();
       }
@@ -37,8 +38,8 @@ let displayItems = function() {
   connection.query("SELECT * FROM products", function(err, res) {
     if (err) throw err;
     console.log(res);
+    console.log("Click any letter button to return back to the main menu");
   });
-  runBamazon();
 };
 
 // in place order, there will also be an inquirer prompt
