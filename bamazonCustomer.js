@@ -73,41 +73,48 @@ let placeOrder = function() {
     ])
     .then(function(answer) {
       //if id === id && amount <= amount in db in the available to purchase then allow purchase.
-      connection.query("SELECT * FROM products", function(err, res) {
-        if (err) throw err;
-        for (let i = 0; i < res.length; i++) {
-          if (
-            res[i].order == parseInt(answer.order) &&
-            res[i].quantity > parseInt(answer.quantity)
-          ) {
-            let query = "UPDATE products SET ? WHERE ?";
-            connection.query(query, [answer.quantity, answer.order]);
+      connection.query(
+        `SELECT * FROM products WHERE ?`,
+        [
+          {
+            id: answer.order
+          }
+        ],
+        function(err, product) {
+          if (err) throw err;
+
+          if (product[0].quantity >= answer.quantity) {
+            cashOut(product, answer.quantity);
+          } else {
+            console.log("Out of Stock");
+            setTimeout(displayItems, 5000);
+            return;
           }
         }
-      });
-
-      // else if - unable to process order
-
-      // for (let i = 0; i < res.length; i++) {
-      //   if (res[i].id == parseInt(answer.order)) {
-      //     if (res[i].quantity >= parseInt(answer.quantity)) {
-      //       connection.query("UPDATE products SET ? WHERE ?", [
-      //         {
-      //         }
-      //       ], function(err, res){
-      //         console.log("Order successfully placed!")
-      //         runBamazon()
-      //       }
-      //     } else {
-      //       console.log("Insufficient quantity! Order was not placed");
-      //       runBamazon();
-      //     }
-      //   } else {
-      //     console.log(
-      //       "Sorry this is not an id available for order, currently."
-      //     );
-      //     runBamazon();
-      //   }
-      // }
+      );
     });
 };
+
+function cashOut(product, quantity) {
+  inquirer
+    .prompt([
+      {
+        type: "confirm",
+        message: "Are you sure?",
+        name: "confirm"
+      }
+    ])
+    .then(ans => {
+      if (ans.confirm) {
+        connection.query(
+          `UPDATE products SET quantity = quantity - ${quantity} WHERE id = ${product[0].id}`
+        );
+        console.log(
+          `Thanks for shopping enjoy, your new ${product[0].product}`
+        );
+        connection.end();
+      } else {
+        return connection.end();
+      }
+    });
+}
